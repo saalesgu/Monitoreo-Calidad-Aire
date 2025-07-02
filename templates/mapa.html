@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Mapa de Calidad del Aire{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<style>
+    #map { height: 500px; width: 80%; margin: 20px auto; }
+    .info { text-align: center; padding: 20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="info">
+        <h1>Calidad del Aire en Tiempo Real</h1>
+        <p>PM2.5: {{ pm25 }} µg/m³</p>
+    </div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([{{ lat }}, {{ lon }}], 15);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        
+        L.circleMarker([{{ lat }}, {{ lon }}], {
+            radius: 10,
+            fillColor: "{{ color }}",
+            color: "#000",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
+        }).addTo(map).bindPopup(`PM2.5: {{ pm25 }} µg/m³`);
+    </script>
+{% endblock %}
