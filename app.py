@@ -54,27 +54,38 @@ def receive_data():
 
 @app.route('/mapa')
 def mostrar_mapa():
-    # Obtener el último dato de PM2.5 (ejemplo: 25 µg/m³)
+    # Obtener el último dato de PM2.5
     pm25 = sensor_data['current'].get('pm2_5', 0) if sensor_data['current'] else 0
-    
-    # Definir colores según PurpleAir (basado en PM2.5)
+    lat, lon = 3.422120422430817, -76.48810432270528
+
+    # Determinar color según rangos de calidad del aire
     def determinar_color(pm25):
-        if pm25 <= 12: return 'green'
-        elif pm25 <= 35: return 'yellow'
-        elif pm25 <= 55: return 'orange'
-        else: return 'red'
+        if pm25 <= 12:
+            return 'green'
+        elif pm25 <= 35:
+            return 'yellow'
+        elif pm25 <= 55:
+            return 'orange'
+        else:
+            return 'red'
     
     color = determinar_color(pm25)
-    
-    lat, lon = 3.422120422430817, -76.48810432270528
-    
+
+    # Extraer últimos 20 registros para el gráfico
+    ultimos = sensor_data['history'][-20:]  # puedes ajustar el número
+    labels = [d.get("timestamp", "N/A") for d in ultimos]
+    valores_pm25 = [d.get("pm2_5", 0) for d in ultimos]
+
     return render_template(
         'mapa.html',
         lat=lat,
         lon=lon,
         color=color,
-        pm25=pm25
+        pm25=pm25,
+        labels=labels,
+        valores_pm25=valores_pm25
     )
+
 @app.route('/dashboard')
 def dashboard():
     # Enviar los últimos 20 registros históricos

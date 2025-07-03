@@ -33,7 +33,7 @@
     const temp = {{ history | map(attribute='temperature') | list | tojson }};
     const hum = {{ history | map(attribute='humidity') | list | tojson }};
 
-    new Chart(document.getElementById('pmChart'), {
+    const pmChart = new Chart(document.getElementById('pmChart'), {
         type: 'line',
         data: {
             labels: labels,
@@ -56,7 +56,7 @@
         }
     });
 
-    new Chart(document.getElementById('tempHumChart'), {
+    const tempHumChart = new Chart(document.getElementById('tempHumChart'), {
         type: 'line',
         data: {
             labels: labels,
@@ -76,5 +76,27 @@
             }
         }
     });
+
+    // 🔁 Actualización automática cada 15 segundos
+    setInterval(() => {
+        fetch('/api/data')
+            .then(res => res.json())
+            .then(data => {
+                const hist = data.history.slice(-20);
+                const newLabels = hist.map(d => d.timestamp);
+
+                pmChart.data.labels = newLabels;
+                pmChart.data.datasets[0].data = hist.map(d => d.pm1_0);
+                pmChart.data.datasets[1].data = hist.map(d => d.pm2_5);
+                pmChart.data.datasets[2].data = hist.map(d => d.pm4_0);
+                pmChart.data.datasets[3].data = hist.map(d => d.pm10_0);
+                pmChart.update();
+
+                tempHumChart.data.labels = newLabels;
+                tempHumChart.data.datasets[0].data = hist.map(d => d.temperature);
+                tempHumChart.data.datasets[1].data = hist.map(d => d.humidity);
+                tempHumChart.update();
+            });
+    }, 15000); // cada 15 segundos
 </script>
 {% endblock %}
