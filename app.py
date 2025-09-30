@@ -55,7 +55,7 @@ def receive_data():
 def mostrar_mapa():
     # Obtener el último dato de PM2.5
     pm25 = sensor_data['current'].get('pm2_5', 0) if sensor_data['current'] else 0
-    lat, lon = 3.422120422430817, -76.48810432270528
+    lat, lon = 3.452065680855233, -76.53538487798981
 
     # Determinar color según rangos de calidad del aire
     def determinar_color(pm25):
