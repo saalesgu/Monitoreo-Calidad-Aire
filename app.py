@@ -2,6 +2,14 @@ from flask import Flask, render_template, request, jsonify
 from datetime import datetime
 import json
 import os
+#import firebase_admin
+#from firebase_admin import credentials, firestore
+
+# # Inicializar Firebase solo una vez
+# if not firebase_admin._apps:
+#     cred = credentials.Certificate("firebase_key.json")
+#     firebase_admin.initialize_app(cred)
+#     db = firestore.client()
 
 app = Flask(__name__)
 
@@ -18,38 +26,29 @@ def index():
 
 @app.route('/data', methods=['POST'])
 def receive_data():
-    print("\n--- Nueva solicitud ---")
-    print("Headers:", request.headers)
-    print("Datos crudos:", request.data)
-    
     if not request.is_json:
-        print("Error: No es JSON")
         return jsonify({'status': 'error', 'message': 'Request must be JSON'}), 400
-    
+
     try:
         data = request.get_json()
-        print("JSON recibido:", data)
-        
-        # Verificar estructura básica
         required_fields = ['pm1_0', 'pm2_5', 'temperature', 'humidity']
         for field in required_fields:
             if field not in data:
-                print(f"Error: Falta campo requerido {field}")
                 return jsonify({'status': 'error', 'message': f'Missing required field: {field}'}), 400
-        
-        data['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        # ✅ Usar timestamp del ESP si está disponible
+        if 'timestamp' not in data:
+            data['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
         sensor_data['current'] = data
         sensor_data['last_update'] = data['timestamp']
         sensor_data['history'].append(data)
-        
         if len(sensor_data['history']) > 100:
             sensor_data['history'] = sensor_data['history'][-100:]
-            
-        print("Datos actualizados correctamente")
+
         return jsonify({'status': 'success'})
-    
+
     except Exception as e:
-        print("Error procesando JSON:", str(e))
         return jsonify({'status': 'error', 'message': str(e)}), 400
 
 @app.route('/mapa')
